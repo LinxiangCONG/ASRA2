@@ -1,0 +1,90 @@
+---
+- name: Configure Switch1
+  hosts: switch1
+  remote_user: cumulus
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Set hostname for Switch1
+      command: net add hostname switch1
+
+    - name: Add interfaces to Switch1
+      command: net add interface swp1,swp2,swp3,swp4
+
+    - name: Set bridge PVID for Switch1
+      command: net add bridge bridge pvid 1
+
+    - name: Add bond slaves on Switch1
+      command: net add bond bond0 bond slaves swp1-2
+
+    - name: Add ports to bridge on Switch1
+      command: net add bridge bridge ports bond0,swp3-4
+
+    - name: Add trunk VLANs to interface swp3 on Switch1
+      command: net add interface swp3 bridge trunk vlans 10-20
+
+    - name: Add trunk VLANs to bond0 on Switch1
+      command: net add bond bond0 bridge trunk vlans 10-20
+
+    - name: Set access VLAN on interface swp4 on Switch1
+      command: net add interface swp4 bridge access 10
+
+    - name: Apply the changes on Switch1
+      command: net pending
+      register: output
+
+    - name: Commit the changes on Switch1
+      command: net commit
+      when: output.stdout != ""
+
+- name: Configure Switch2
+  hosts: switch2
+  remote_user: cumulus
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Set hostname for Switch2
+      command: net add hostname switch2
+
+    - name: Add interfaces to Switch2
+      command: net add interface swp1,swp2
+
+    - name: Set bridge PVID for Switch2
+      command: net add bridge bridge pvid 1
+
+    - name: Add trunk VLANs to interfaces on Switch2
+      command: net add interface swp1,swp2 bridge trunk vlans 10-20
+
+    - name: Apply the changes on Switch2
+      command: net pending
+      register: output
+
+    - name: Commit the changes on Switch2
+      command: net commit
+      when: output.stdout != ""
+
+- name: Configure Switch3
+  hosts: switch3
+  remote_user: cumulus
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Set hostname for Switch3
+      command: net add hostname switch3
+
+    - name: Add interfaces to Switch3
+      command: net add interface swp1,swp2,swp3
+
+    - name: Set bridge PVID for Switch3
+      command: net add bridge bridge pvid 1
+
+    - name: Add trunk VLANs to interfaces on Switch3
+      command: net add interface swp1,swp2 bridge trunk vlans 10-20
+
+    - name: Apply the changes on Switch3
+      command: net pending
+      register: output
+
+    - name: Commit the changes on Switch3
+      command: net commit
+      when: output.stdout != ""
