@@ -1,0 +1,432 @@
+---
+- name: Configure Switch1
+  hosts: switch1
+  remote_user: cumulus
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Set hostname for Switch1
+      command: net add hostname switch1
+
+    - name: Add interfaces to Switch1
+      command: net add interface swp1,swp2,swp3,swp4,swp5
+
+    - name: Add bond1 slaves on Switch1
+      command: net add bond bond1 bond slaves swp1
+    
+    - name: Add bond3 slaves on Switch1
+      command: net add bond bond3 bond slaves swp3
+    
+    - name: Add peerlink slaves on Switch1
+      command: net add bond peerlink bond slaves swp4,swp5
+
+    - name: Set access VLAN on bond1 on Switch1
+      command: net add bond bond1 bridge access 100
+
+    - name: Set access VLAN on bond2 on Switch1
+      command: net add bond bond2 bridge access 200     
+
+    - name: Set access VLAN on bond3 on Switch1
+      command: net add bond bond3 bridge vids 100,200
+    
+    - name: Set access VLAN on bond3 on Switch1
+      command: net add bond bond3 bridge vids 100,200    
+    
+    - name: Add peerlink in bridge on Switch1
+      command: net add bridge bridge ports peerlink
+    
+    - name: Configure loopback lo on Switch1
+      command: net add loopback lo ip address 10.10.10.1/24
+
+    - name: Add clag_id in bond1 on Switch1
+      command: net add bond bond1 clag id 1
+    
+    - name: Add clag_id in bond2 on Switch1
+      command: net add bond bond2 clag id 2
+
+    - name: Add clag_id in bond3 on Switch1
+      command: net add bond bond3 clag id 3
+
+    - name: Configure peerlink on Switch1
+      command: net add clag peer sys-mac 44:38:39:BE:EF:AA interface swp4-5 primary backup-ip 10.10.10.2
+
+    - name: Apply the changes on Switch1
+      command: net pending
+      register: output
+
+    - name: Commit the changes on Switch1
+      command: net commit
+      when: output.stdout != ""
+######################################################################################################################################################
+
+- name: Configure Switch2
+  hosts: switch2
+  remote_user: cumulus
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Set hostname for Switch1
+      command: net add hostname switch1
+
+    - name: Add interfaces to Switch1
+      command: net add interface swp1,swp2,swp3,swp4,swp5
+
+    - name: Add bond1 slaves on Switch1
+      command: net add bond bond1 bond slaves swp1
+    
+    - name: Add bond3 slaves on Switch1
+      command: net add bond bond3 bond slaves swp3
+    
+    - name: Add peerlink slaves on Switch1
+      command: net add bond peerlink bond slaves swp4,swp5
+
+    - name: Set access VLAN on bond1 on Switch1
+      command: net add bond bond1 bridge access 100
+
+    - name: Set access VLAN on bond2 on Switch1
+      command: net add bond bond2 bridge access 200     
+
+    - name: Set access VLAN on bond3 on Switch1
+      command: net add bond bond3 bridge vids 100,200
+    
+    - name: Set access VLAN on bond3 on Switch1
+      command: net add bond bond3 bridge vids 100,200    
+    
+    - name: Add peerlink in bridge on Switch1
+      command: net add bridge bridge ports peerlink
+    
+    - name: Configure loopback lo on Switch1
+      command: net add loopback lo ip address 10.10.10.1/24
+
+    - name: Add clag_id in bond1 on Switch1
+      command: net add bond bond1 clag id 1
+    
+    - name: Add clag_id in bond2 on Switch1
+      command: net add bond bond2 clag id 2
+
+    - name: Add clag_id in bond3 on Switch1
+      command: net add bond bond3 clag id 3
+
+    - name: Configure peerlink on Switch1
+      command: net add clag peer sys-mac 44:38:39:BE:EF:AA interface swp4-5 primary backup-ip 10.10.10.1
+
+    - name: Apply the changes on Switch1
+      command: net pending
+      register: output
+
+    - name: Commit the changes on Switch1
+      command: net commit
+      when: output.stdout != ""
+######################################################################################################################################################
+- name: Configure Switch3
+  hosts: switch3
+  remote_user: cumulus
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Set hostname for Switch3
+      command: net add hostname switch3
+
+    - name: Add interfaces to Switch3
+      command: net add interface swp1,swp2,swp3
+      
+    - name: Commit the changes on Switch3
+      command: net commit
+      when: output.stdout != ""
+
+    - name: Add bond0 on Switch3
+      command: net add bond bond0 bond slaves swp1,swp2
+      
+    - name: Add bond mode on Switch3
+      command: net add bond bond0 bond mode 802.3ad
+
+    - name: Commit the changes on Switch3
+      command: net commit
+      when: output.stdout != ""
+      
+    - name: Add bond0 to bridge trunk 100,200
+      command: net add bond bond0 bridge trunk vlans 100,200
+
+    - name: Commit the changes on Switch3
+      command: net commit
+      when: output.stdout != ""
+      
+    - name: Add vlan 100
+      command: net add vlan 100
+      
+    - name: Add vlan100 ip
+      command: net add interface vlan100 ip address 192.168.1.254/24
+
+    - name: Add vlan100 id
+      command: net add vlan 100 vlan-id 100
+
+    - name: Add vlan100 raw-device
+      command: net add vlan 100 vlan-raw-device bridge
+      
+    - name: Commit the changes on Switch3
+      command: net commit
+      when: output.stdout != ""
+      
+    - name: Add vlan 200
+      command: net add vlan 200
+      
+    - name: Add vlan200 ip
+      command: net add interface vlan200 ip address 192.168.2.254/24
+
+    - name: Add vlan200 id
+      command: net add vlan 200 vlan-id 200
+
+    - name: Add vlan200 raw-device
+      command: net add vlan 200 vlan-raw-device bridge
+      
+    - name: Commit the changes on Switch3
+      command: net commit
+      when: output.stdout != ""    
+    
+    - name: ADD VLAN on peerlink for VRRP
+      command: net add vlan peerlink.4093
+    
+    - name: Configure IP on peerlink.4093 for VRRP
+      command: net add interface peerlink.4093 ip address 20.0.0.2/24
+    
+    - name: Configure VIP on peerlink.4093 for VRRP
+      command: net add interface peerlink.4093 vrrp 44 20.0.0.1/24
+    
+    - name: Configure priority of vrrp on peerlink.4093 for VRRP
+      command: net add interface peerlink.4093 vrrp 44 priority 254
+
+    - name: Configure advertisement-interval of vrrp on peerlink.4093 for VRRP
+      command: net add interface peerlink.4093 vrrp 44 advertisement-interval 5000
+
+    - name: Commit the changes on Switch3
+      command: net commit
+      when: output.stdout != ""   
+
+
+######################################################################################################################################################
+- name: Configure Switch4
+  hosts: switch3
+  remote_user: cumulus
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Set hostname for Switch3
+      command: net add hostname switch3
+
+    - name: Add interfaces to Switch3
+      command: net add interface swp1,swp2,swp3
+      
+    - name: Commit the changes on Switch3
+      command: net commit
+      when: output.stdout != ""
+
+    - name: Add bond0 on Switch3
+      command: net add bond bond0 bond slaves swp1,swp2
+      
+    - name: Add bond mode on Switch3
+      command: net add bond bond0 bond mode 802.3ad
+
+    - name: Commit the changes on Switch3
+      command: net commit
+      when: output.stdout != ""
+      
+    - name: Add bond0 to bridge trunk 100,200
+      command: net add bond bond0 bridge trunk vlans 100,200
+
+    - name: Commit the changes on Switch3
+      command: net commit
+      when: output.stdout != ""
+      
+    - name: Add vlan 100
+      command: net add vlan 100
+      
+    - name: Add vlan100 ip
+      command: net add interface vlan100 ip address 192.168.1.254/24
+
+    - name: Add vlan100 id
+      command: net add vlan 100 vlan-id 100
+
+    - name: Add vlan100 raw-device
+      command: net add vlan 100 vlan-raw-device bridge
+      
+    - name: Commit the changes on Switch3
+      command: net commit
+      when: output.stdout != ""
+      
+    - name: Add vlan 200
+      command: net add vlan 200
+      
+    - name: Add vlan200 ip
+      command: net add interface vlan200 ip address 192.168.2.254/24
+
+    - name: Add vlan200 id
+      command: net add vlan 200 vlan-id 200
+
+    - name: Add vlan200 raw-device
+      command: net add vlan 200 vlan-raw-device bridge
+      
+    - name: Commit the changes on Switch3
+      command: net commit
+      when: output.stdout != ""    
+    
+    - name: ADD VLAN on peerlink for VRRP
+      command: net add vlan peerlink.4093
+    
+    - name: Configure IP on peerlink.4093 for VRRP
+      command: net add interface peerlink.4093 ip address 20.0.0.3/24
+    
+    - name: Configure VIP on peerlink.4093 for VRRP
+      command: net add interface peerlink.4093 vrrp 44 20.0.0.1/24
+
+    - name: Commit the changes on Switch3
+      command: net commit
+      when: output.stdout != ""   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    - name: Apply the changes on Switch3
+      command: net pending
+      register: output
+
+    - name: Commit the changes on Switch3
+      command: net commit
+      when: output.stdout != ""
+######################################################################
+---
+- name: Configure network interfaces and bonding for Debian host
+  hosts: Machine1
+  become: true
+  tasks:
+    - name: Configure DHCP on ens33
+      ansible.builtin.copy:
+        dest: /etc/network/interfaces.d/ens33
+        content: |
+          allow-hotplug ens33
+          iface ens33 inet dhcp
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Configure ens34 for bonding
+      ansible.builtin.copy:
+        dest: /etc/network/interfaces.d/ens34
+        content: |
+          auto ens34
+          iface ens34 inet manual
+            bond-master bond0
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Configure ens35 for bonding
+      ansible.builtin.copy:
+        dest: /etc/network/interfaces.d/ens35
+        content: |
+          auto ens35
+          iface ens35 inet manual
+            bond-master bond0
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Configure bond0 with static IP and bonding parameters
+      ansible.builtin.copy:
+        dest: /etc/network/interfaces.d/bond0
+        content: |
+          auto bond0
+          iface bond0 inet static
+            address 192.168.1.1/24
+            gateway 192.168.1.254
+            mtu 1500
+            bond-mode 802.3ad
+            bond-miimon 100
+            bond-downdelay 200
+            bond-lacp-rate 1
+            bond-xmit-hash-policy layer3+4
+            bond-slaves ens34 ens35
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Restart networking service
+      ansible.builtin.service:
+        name: networking
+        state: restarted
+######################################################################
+---
+- name: Configure network interfaces and bonding for Debian host
+  hosts: Machine2
+  become: true
+  tasks:
+    - name: Configure DHCP on ens33
+      ansible.builtin.copy:
+        dest: /etc/network/interfaces.d/ens33
+        content: |
+          allow-hotplug ens33
+          iface ens33 inet dhcp
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Configure ens34 for bonding
+      ansible.builtin.copy:
+        dest: /etc/network/interfaces.d/ens34
+        content: |
+          auto ens34
+          iface ens34 inet manual
+            bond-master bond0
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Configure ens35 for bonding
+      ansible.builtin.copy:
+        dest: /etc/network/interfaces.d/ens35
+        content: |
+          auto ens35
+          iface ens35 inet manual
+            bond-master bond0
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Configure bond0 with static IP and bonding parameters
+      ansible.builtin.copy:
+        dest: /etc/network/interfaces.d/bond0
+        content: |
+          auto bond0
+          iface bond0 inet static
+            address 192.168.1.1/24
+            gateway 192.168.1.254
+            mtu 1500
+            bond-mode 802.3ad
+            bond-miimon 100
+            bond-downdelay 200
+            bond-lacp-rate 1
+            bond-xmit-hash-policy layer3+4
+            bond-slaves ens34 ens35
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Restart networking service
+      ansible.builtin.service:
+        name: networking
+        state: restarted
+
